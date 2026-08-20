@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Admin — Frostline Ops</title>
+<title>Shipments — Frostline Ops</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -1258,35 +1258,37 @@ html.dark{
   .tabs-nav{ width:100%; }
   .tabs-nav label{ flex:1; justify-content:center; }
 }
+
+/* ---- Shipments status filter ---- */
+.ship-radio{ position:absolute; opacity:0; pointer-events:none; }
+#f-all:checked ~ .tabs-nav label[for="f-all"],
+#f-transit:checked ~ .tabs-nav label[for="f-transit"],
+#f-delivered:checked ~ .tabs-nav label[for="f-delivered"],
+#f-delayed:checked ~ .tabs-nav label[for="f-delayed"],
+#f-flagged:checked ~ .tabs-nav label[for="f-flagged"]{
+  background: color-mix(in srgb, var(--accent) 13%, transparent);
+  border-color:var(--accent); color:var(--accent-dark);
+}
+.admin-table tbody tr[data-status]{ display:table-row; }
+#f-transit:checked ~ .panel .admin-table tbody tr[data-status]{ display:none; }
+#f-transit:checked ~ .panel .admin-table tbody tr[data-status="transit"]{ display:table-row; }
+#f-delivered:checked ~ .panel .admin-table tbody tr[data-status]{ display:none; }
+#f-delivered:checked ~ .panel .admin-table tbody tr[data-status="delivered"]{ display:table-row; }
+#f-delayed:checked ~ .panel .admin-table tbody tr[data-status]{ display:none; }
+#f-delayed:checked ~ .panel .admin-table tbody tr[data-status="delayed"]{ display:table-row; }
+#f-flagged:checked ~ .panel .admin-table tbody tr[data-status]{ display:none; }
+#f-flagged:checked ~ .panel .admin-table tbody tr[data-status="flagged"]{ display:table-row; }
+.ship-id{ font-family:var(--font-mono); font-weight:700; font-size:12.5px; color:var(--text); }
+.ship-sub{ display:block; font-size:12px; color:var(--text-faint); margin-top:2px; }
+.temp-ok{ color:var(--good); font-weight:700; font-family:var(--font-mono); }
+.temp-bad{ color:var(--danger); font-weight:700; font-family:var(--font-mono); }
 </style>
 </head>
 <body class="dash-body">
 
-<!-- ============ ADMIN LOGIN GATE ============ -->
-<div id="adminLogin" class="admin-login-wrap">
-  <div class="admin-login-card">
-    <a href="../index.html" class="brand" style="margin-bottom:8px; display:inline-flex;"><span class="mark"></span>FROSTLINE</a>
-    <div class="admin-login-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 018 0v3"/></svg></div>
-    <h1>Admin sign-in</h1>
-    <p>This area is restricted to Frostline staff. Enter your admin credentials to continue.</p>
-    <form id="adminLoginForm">
-      <div class="field"><label>Username</label><input type="text" name="username" autocomplete="username" required></div>
-      <div class="field">
-        <label>Password</label>
-        <input type="password" name="password" id="adminPassword" autocomplete="current-password" required>
-        <button type="button" class="pw-toggle" id="pwToggle" aria-label="Show password">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
-        </button>
-      </div>
-      <div class="admin-login-error" id="adminLoginError">Incorrect username or password.</div>
-      <button type="submit" class="btn btn-primary" style="width:100%;">Sign in</button>
-    </form>
-  </div>
-</div>
-
 <input type="checkbox" id="sidebarToggle" class="sidebar-toggle" style="display:none;">
 
-<div class="dash-shell" id="adminApp" style="display:none;">
+<div class="dash-shell">
 
   <label for="sidebarToggle" class="sidebar-backdrop"></label>
 
@@ -1302,14 +1304,18 @@ html.dark{
       <li><a href="cold-storage.html">
         <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M8 4v16"/></svg>
         Cold Storage</a></li>
+      <li><a href="shipments.html" class="active">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M3 16V7a1 1 0 011-1h9v10M3 16h13M3 16a2 2 0 104 0M13 16a2 2 0 104 0M16 10h3.6a1 1 0 01.9.55L22 14v2h-2"/></svg>
+        Shipments</a></li>
     </ul>
 
     <div class="side-label">Management</div>
     <ul class="side-nav">
-      <li><a href="admin.html" class="active">
+      <li><a href="admin.html">
         <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M4 21v-2a4 4 0 014-4h4a4 4 0 014 4v2"/><circle cx="10" cy="7" r="4"/><path d="M17 8a3 3 0 100-6 3 3 0 000 6zM20 21v-2a4 4 0 00-3-3.87"/></svg>
         Admin</a></li>
     </ul>
+
 
     <div class="sidebar-foot">
       <b>Frostline Ops</b>
@@ -1328,13 +1334,65 @@ html.dark{
 
       <div class="topbar-search">
         <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
-        <input type="text" placeholder="Search leads…">
+        <input type="text" placeholder="Search shipments, batches, vehicles…">
       </div>
 
       <div class="topbar-spacer"></div>
 
       <div class="topbar-right">
-        <button type="button" id="adminLogout" class="btn btn-ghost btn-sm">Log out</button>
+        <details class="picker">
+          <summary>
+            <svg class="ico" viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M12 21s-7-6-7-11a7 7 0 1114 0c0 5-7 11-7 11z"/><circle cx="12" cy="10" r="2.4"/></svg>
+            Delhi Facility
+            <svg class="chev" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+          </summary>
+          <div class="picker-panel">
+            <a href="#" class="sel">Delhi Facility</a>
+            <a href="#">Mumbai Facility</a>
+            <a href="#">Gurgaon Facility</a>
+            <a href="#" style="color:var(--text-faint);">All Facilities</a>
+          </div>
+        </details>
+
+        <details class="picker">
+          <summary>
+            <svg class="ico" viewBox="0 0 24 24" fill="none" stroke-width="1.8"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M8 2v4M16 2v4M3 9h18"/></svg>
+            Last 7 days
+            <svg class="chev" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+          </summary>
+          <div class="picker-panel">
+            <a href="#">Today</a>
+            <a href="#" class="sel">Last 7 days</a>
+            <a href="#">Last 30 days</a>
+            <a href="#">This quarter</a>
+          </div>
+        </details>
+
+        <details class="picker">
+          <summary class="icon-btn" style="border-radius:10px;">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M10.3 3.9a2 2 0 013.4 0l8 14A2 2 0 0120 21H4a2 2 0 01-1.7-3.1l8-14z"/><path d="M12 9v4M12 17h.01"/></svg>
+            <span class="dot"></span>
+          </summary>
+          <div class="picker-panel notif-panel" style="right:0;">
+            <h6>Recent notifications</h6>
+            <div class="notif-item"><div class="notif-dot" style="background:var(--danger);"></div><div><p>Chamber B temperature exceeded safe range</p><span>4 min ago · Delhi Facility</span></div></div>
+            <div class="notif-item"><div class="notif-dot" style="background:var(--warn);"></div><div><p>Sensor disconnected — TRUCK-021</p><span>22 min ago · Fleet</span></div></div>
+            <div class="notif-item"><div class="notif-dot" style="background:var(--info);"></div><div><p>Shipment #CC10245 delivered</p><span>1 hr ago · Shipments</span></div></div>
+          </div>
+        </details>
+
+        <details class="picker">
+          <summary class="profile-chip">
+            <span class="av">AS</span>
+            <span class="who"><b>Aditi Sharma</b><span>Ops Manager</span></span>
+            <svg class="chev" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+          </summary>
+          <div class="picker-panel">
+            <a href="#">Account settings</a>
+            <a href="#">Switch facility role</a>
+            <a href="#" style="color:var(--danger);">Sign out</a>
+          </div>
+        </details>
       </div>
     </header>
 
@@ -1343,128 +1401,131 @@ html.dark{
 
       <div class="page-head">
         <div>
-          <div class="crumb">MANAGEMENT / <b>ADMIN</b></div>
-          <h1>Admin</h1>
-          <p>Contact form leads and a live snapshot of the cold chain.</p>
+          <div class="crumb">OPERATIONS / <b>SHIPMENTS</b></div>
+          <h1>Shipments</h1>
+          <p>Tracking 24 active cold-chain shipments across 3 facilities — last synced 2 minutes ago.</p>
         </div>
         <div class="page-actions">
-          <button type="button" id="clearSubmissions" class="btn btn-ghost btn-sm">Clear leads</button>
-          <a href="../index.html#contact" class="btn btn-primary btn-sm">View contact form</a>
+          <a href="#" class="btn btn-ghost btn-sm">Export CSV</a>
+          <a href="#" class="btn btn-primary btn-sm">New shipment</a>
         </div>
       </div>
 
-      <!-- KPI GRID -->
-      <div class="kpi-grid">
+      <!-- KPI STRIP -->
+      <div class="kpi-grid" style="grid-template-columns:repeat(4,1fr);">
         <div class="kpi-card">
-          <div class="kpi-top"><span class="kpi-label">Total Leads</span>
-            <div class="kpi-ico tone-teal"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M4 21v-2a4 4 0 014-4h4a4 4 0 014 4v2"/><circle cx="10" cy="7" r="4"/></svg></div>
-          </div>
-          <div class="kpi-value" id="kpiTotalLeads">0</div>
-          <div class="kpi-delta flat">from the contact form</div>
-        </div>
-        <div class="kpi-card">
-          <div class="kpi-top"><span class="kpi-label">Leads Today</span>
-            <div class="kpi-ico tone-blue"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M8 2v4M16 2v4M3 9h18"/></svg></div>
-          </div>
-          <div class="kpi-value" id="kpiLeadsToday">0</div>
-          <div class="kpi-delta flat">since midnight</div>
-        </div>
-        <div class="kpi-card">
-          <div class="kpi-top"><span class="kpi-label">Active Shipments</span>
+          <div class="kpi-top"><span class="kpi-label">Total Shipments</span>
             <div class="kpi-ico tone-blue"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M3 16V7a1 1 0 011-1h9v10M3 16h13M3 16a2 2 0 104 0M13 16a2 2 0 104 0M16 10h3.6a1 1 0 01.9.55L22 14v2h-2"/></svg></div>
           </div>
           <div class="kpi-value">24</div>
-          <div class="kpi-delta flat">4 arriving today</div>
+          <div class="kpi-delta flat">this week</div>
         </div>
         <div class="kpi-card">
-          <div class="kpi-top"><span class="kpi-label">Temperature Alerts</span>
-            <div class="kpi-ico tone-danger"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M10.3 3.9a2 2 0 013.4 0l8 14A2 2 0 0120 21H4a2 2 0 01-1.7-3.1l8-14z"/><path d="M12 9v4M12 17h.01"/></svg></div>
+          <div class="kpi-top"><span class="kpi-label">In Transit</span>
+            <div class="kpi-ico tone-teal"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M21 8l-9-5-9 5 9 5 9-5z"/><path d="M3 8v8l9 5 9-5V8"/></svg></div>
           </div>
-          <div class="kpi-value">03</div>
-          <div class="kpi-delta down"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 9l6 6 6-6"/></svg> 1 critical — Chamber B</div>
-        </div>
-        <div class="kpi-card">
-          <div class="kpi-top"><span class="kpi-label">Facilities Online</span>
-            <div class="kpi-ico tone-good"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M9 12l2 2 4-4"/></svg></div>
-          </div>
-          <div class="kpi-value">3<span>/ 3</span></div>
-          <div class="kpi-delta flat">all facilities reporting</div>
+          <div class="kpi-value">11</div>
+          <div class="kpi-delta flat">across 6 vehicles</div>
         </div>
         <div class="kpi-card">
           <div class="kpi-top"><span class="kpi-label">On-Time Delivery</span>
-            <div class="kpi-ico tone-blue"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M3 16V7a1 1 0 011-1h9v10M3 16h13M3 16a2 2 0 104 0M13 16a2 2 0 104 0M16 10h3.6a1 1 0 01.9.55L22 14v2h-2"/></svg></div>
+            <div class="kpi-ico tone-good"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M9 12l2 2 4-4"/></svg></div>
           </div>
           <div class="kpi-value">96.4<span>%</span></div>
           <div class="kpi-delta up"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 15l6-6 6 6"/></svg> +0.6% MoM</div>
         </div>
+        <div class="kpi-card">
+          <div class="kpi-top"><span class="kpi-label">Temp Excursions</span>
+            <div class="kpi-ico tone-warn"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M10.3 3.9a2 2 0 013.4 0l8 14A2 2 0 0120 21H4a2 2 0 01-1.7-3.1l8-14z"/><path d="M12 9v4M12 17h.01"/></svg></div>
+          </div>
+          <div class="kpi-value">02</div>
+          <div class="kpi-delta down"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 9l6 6 6-6"/></svg> flagged in last 24h</div>
+        </div>
       </div>
 
-      <!-- LEADS TABLE -->
-      <div class="panel" style="margin-bottom:16px;">
-        <div class="panel-head"><h3>Contact Form Leads</h3><span class="sub" id="submissionsSub">stored in this browser</span></div>
+      <!-- STATUS FILTER (CSS-only radio switching) -->
+      <input type="radio" name="ship-filter" id="f-all" class="ship-radio" checked>
+      <input type="radio" name="ship-filter" id="f-transit" class="ship-radio">
+      <input type="radio" name="ship-filter" id="f-delivered" class="ship-radio">
+      <input type="radio" name="ship-filter" id="f-delayed" class="ship-radio">
+      <input type="radio" name="ship-filter" id="f-flagged" class="ship-radio">
 
-        <div class="admin-table-wrap" id="submissionsTableWrap" style="display:none;">
+      <nav class="tabs-nav">
+        <label for="f-all">All <span class="n">24</span></label>
+        <label for="f-transit">In Transit <span class="n">11</span></label>
+        <label for="f-delivered">Delivered <span class="n">9</span></label>
+        <label for="f-delayed">Delayed <span class="n">2</span></label>
+        <label for="f-flagged">Temp Flagged <span class="n">2</span></label>
+      </nav>
+
+      <!-- SHIPMENTS TABLE -->
+      <div class="panel" style="margin-bottom:16px;">
+        <div class="panel-head"><h3>All Shipments</h3><span class="sub">updated 2 min ago</span></div>
+
+        <div class="admin-table-wrap">
           <table class="admin-table">
             <thead>
-              <tr><th>Name</th><th>Contact</th><th>Shipping</th><th>Message</th><th>Received</th></tr>
+              <tr><th>Shipment</th><th>Route</th><th>Vehicle</th><th>Temp</th><th>ETA</th><th>Status</th></tr>
             </thead>
-            <tbody id="submissionsBody"></tbody>
+            <tbody>
+              <tr data-status="delivered">
+                <td><span class="ship-id">#CC10245</span><span class="ship-sub">Vaccines · Batch VX-3381</span></td>
+                <td>Delhi Warehouse → Mumbai Hub</td>
+                <td>TRUCK-014</td>
+                <td><span class="temp-ok">3.6°C</span></td>
+                <td>Delivered 1hr ago</td>
+                <td><span class="badge good"><i></i>Delivered</span></td>
+              </tr>
+              <tr data-status="transit">
+                <td><span class="ship-id">#CC10251</span><span class="ship-sub">Dairy · Batch DR-1187</span></td>
+                <td>Gurgaon Facility → Chennai</td>
+                <td>TRUCK-009</td>
+                <td><span class="temp-ok">4.1°C</span></td>
+                <td>Today, 6:40 PM</td>
+                <td><span class="badge info"><i></i>In transit</span></td>
+              </tr>
+              <tr data-status="delayed">
+                <td><span class="ship-id">#CC10238</span><span class="ship-sub">Seafood · Batch SF-0552</span></td>
+                <td>Mumbai Facility → Pune</td>
+                <td>TRUCK-021</td>
+                <td><span class="temp-ok">-1.2°C</span></td>
+                <td>Delayed · ETA 9:10 PM</td>
+                <td><span class="badge warn"><i></i>Delayed</span></td>
+              </tr>
+              <tr data-status="flagged">
+                <td><span class="ship-id">#CC10229</span><span class="ship-sub">Frozen Food · Batch FF-9042</span></td>
+                <td>Delhi Warehouse → Jaipur</td>
+                <td>TRUCK-006</td>
+                <td><span class="temp-bad">9.4°C</span></td>
+                <td>Today, 4:15 PM</td>
+                <td><span class="badge danger"><i></i>Temp flagged</span></td>
+              </tr>
+              <tr data-status="transit">
+                <td><span class="ship-id">#CC10256</span><span class="ship-sub">Pharma · Batch PH-2214</span></td>
+                <td>Mumbai Facility → Bengaluru</td>
+                <td>TRUCK-011</td>
+                <td><span class="temp-ok">2.9°C</span></td>
+                <td>Tomorrow, 8:00 AM</td>
+                <td><span class="badge info"><i></i>In transit</span></td>
+              </tr>
+              <tr data-status="delivered">
+                <td><span class="ship-id">#CC10202</span><span class="ship-sub">Produce · Batch PR-7710</span></td>
+                <td>Gurgaon Facility → Delhi Warehouse</td>
+                <td>TRUCK-003</td>
+                <td><span class="temp-ok">5.8°C</span></td>
+                <td>Delivered yesterday</td>
+                <td><span class="badge good"><i></i>Delivered</span></td>
+              </tr>
+              <tr data-status="flagged">
+                <td><span class="ship-id">#CC10261</span><span class="ship-sub">Vaccines · Batch VX-3390</span></td>
+                <td>Delhi Warehouse → Lucknow</td>
+                <td>TRUCK-017</td>
+                <td><span class="temp-bad">10.1°C</span></td>
+                <td>Today, 5:50 PM</td>
+                <td><span class="badge danger"><i></i>Temp flagged</span></td>
+              </tr>
+            </tbody>
           </table>
-        </div>
-
-        <div class="admin-empty" id="submissionsEmpty">
-          <div class="admin-empty-ico">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 21v-2a4 4 0 014-4h4a4 4 0 014 4v2"/><circle cx="10" cy="7" r="4"/><path d="M17 8a3 3 0 100-6 3 3 0 000 6z"/></svg>
-          </div>
-          <p>No leads yet. Submissions from the contact form on the main site will show up here automatically.</p>
-          <a href="../index.html#contact" class="btn btn-ghost btn-sm">Open contact form</a>
-        </div>
-      </div>
-
-      <!-- LIVE OPS SNAPSHOT -->
-      <div class="panel-grid trio">
-        <div class="panel">
-          <div class="panel-head"><h3>Lead Sources</h3><span class="sub">by shipment type</span></div>
-          <div id="leadSources"></div>
-        </div>
-
-        <div class="panel">
-          <div class="panel-head"><h3>Recent Alerts</h3><a href="overview.html" class="sub" style="color:var(--accent-dark); font-weight:600;">Full dashboard →</a></div>
-          <div class="list-rows">
-            <div class="list-row">
-              <div class="list-ico tone-danger"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M10.3 3.9a2 2 0 013.4 0l8 14A2 2 0 0120 21H4a2 2 0 01-1.7-3.1l8-14z"/><path d="M12 9v4M12 17h.01"/></svg></div>
-              <div class="list-main"><b>Chamber B temperature exceeded safe range</b><span>Delhi Facility · Chamber B</span></div>
-              <div class="list-meta"><span class="badge danger"><i></i>Critical</span></div>
-            </div>
-            <div class="list-row">
-              <div class="list-ico tone-warn"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M3 16V7a1 1 0 011-1h9v10M3 16h13"/></svg></div>
-              <div class="list-main"><b>Sensor disconnected on TRUCK-021</b><span>Fleet · En route Delhi → Mumbai</span></div>
-              <div class="list-meta"><span class="badge warn"><i></i>Warning</span></div>
-            </div>
-            <div class="list-row">
-              <div class="list-ico tone-teal"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M14.7 6.3a4 4 0 10-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 105.4-5.4z"/></svg></div>
-              <div class="list-main"><b>Maintenance due — Compressor CMP-024</b><span>Delhi Facility</span></div>
-              <div class="list-meta"><span class="badge info"><i></i>Info</span></div>
-            </div>
-          </div>
-        </div>
-
-        <div class="panel">
-          <div class="panel-head"><h3>Facility Status</h3><span class="sub">3 online</span></div>
-          <div class="list-rows" style="gap:0;">
-            <div style="margin-bottom:14px;">
-              <div style="display:flex; justify-content:space-between; font-size:12.6px; margin-bottom:6px;"><span style="font-weight:600;">Delhi Facility</span><span style="font-family:var(--font-mono); color:var(--text-muted);">91%</span></div>
-              <div class="meter"><i style="width:91%; background:var(--warn);"></i></div>
-            </div>
-            <div style="margin-bottom:14px;">
-              <div style="display:flex; justify-content:space-between; font-size:12.6px; margin-bottom:6px;"><span style="font-weight:600;">Mumbai Facility</span><span style="font-family:var(--font-mono); color:var(--text-muted);">78%</span></div>
-              <div class="meter"><i style="width:78%; background:var(--accent);"></i></div>
-            </div>
-            <div>
-              <div style="display:flex; justify-content:space-between; font-size:12.6px; margin-bottom:6px;"><span style="font-weight:600;">Gurgaon Facility</span><span style="font-family:var(--font-mono); color:var(--text-muted);">62%</span></div>
-              <div class="meter"><i style="width:62%; background:var(--accent);"></i></div>
-            </div>
-          </div>
         </div>
       </div>
 
@@ -1472,6 +1533,5 @@ html.dark{
   </div>
 </div>
 
-<script src="../js/admin.js"></script>
 </body>
 </html>
